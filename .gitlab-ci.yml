@@ -1,0 +1,54 @@
+image: maven:3.6.2-jdk-11-slim
+
+variables:
+  MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version"
+
+cache:
+  paths:
+    - ./.m2/repository
+  # keep cache across branch
+  key: "$CI_BUILD_REF_NAME"
+
+before_script:
+  - mvn dependency:go-offline
+
+stages:
+  - buildAndTest
+  - deploy
+
+buildAndTest:
+  stage: buildAndTest
+  script:
+    - "mvn clean clean compile test package assembly:single -Djava.awt.headless=true -Dmaven.repo.local=./.m2/repository -Dorg.slf4j.simpleLogger.defaultLogLevel=debug -Daccess_key_id=$AWS_ACCESS_KEY_ID -Dsecret_key_id=$AWS_SECRET_ACCESS_KEY"
+  artifacts:
+    paths:
+    - target
+
+deploy-dev:
+  stage: deploy
+  image: node:latest
+  before_script:
+    - npm config set prefix /usr/local
+    - npm install -g serverless
+    - npm install
+  script:
+    - serverless deploy --stage arber-dev --verbose
+  environment: arber-dev
+  dependencies:
+    - buildAndTest
+
+production:
+  stage: deploy
+  image: node:latest
+  before_script:
+    - npm config set prefix /usr/local
+    - npm install -g serverless
+    - npm install
+  script:
+    - serverless deploy --stage production --verbose
+  environment: production
+  dependencies:
+    - buildAndTest
+  only:
+    refs:
+      - master

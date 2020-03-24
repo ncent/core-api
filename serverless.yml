@@ -1,0 +1,235 @@
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+# We've included some commented out config examples here.
+# Just uncomment any of them to get that config option.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
+
+service: ncent-api # NOTE: update this with your service name
+
+# You can pin your service to only deploy with a specific Serverless version
+# Check out our docs for more details
+# frameworkVersion: "=X.X.X"
+
+plugins:
+  - serverless-pseudo-parameters
+  - serverless-plugin-split-stacks
+
+custom:
+  authorizer: ${ssm:/ncnt/${opt:stage}/authorizer}
+  splitStacks:
+    perFunction: false
+    perType: true
+    perGroupFunction: false
+
+provider:
+  name: aws
+  runtime: java8
+  region: ${opt:region, 'us-west-2'}
+  accountId: ''
+  timeout: 40
+#  vpc:
+#    securityGroupIds:
+#      - ${ssm:/ncnt/${opt:stage}/securitygroup}
+#    subnetIds:
+#      - ${ssm:/ncnt/${opt:stage}/subnet/1}
+#      - ${ssm:/ncnt/${opt:stage}/subnet/2}
+  #    Define function environment variables here
+  environment:
+    qldb_endpoint: arn:aws:qldb:${self:provider.region}:${self:provider.accountId}:ledger/
+    qldb_ledger_name: ${ssm:/ncnt/${opt:stage}/qldb/ledger_name, 'ncent'}-${opt:stage, 'test'}
+    bugsnag_api_key: ${ssm:/ncnt/${opt:stage}/bugsnag/apikey~true}
+    release_stage: ${ssm:/ncnt/${opt:stage}/release_stage}
+    access_key_id: ${ssm:/ncnt/aws/apikey~true}
+    secret_key_id: ${ssm:/ncnt/aws/secretkey~true}
+  #      database_url: jdbc:mysql://localhost:3306/ncnt
+  #      database_driver: com.mysql.jdbc.Driver
+  #      database_user: root
+  #      database_password: ncntroot
+
+# you can overwrite defaults here
+#  stage: dev
+#  region: us-east-1
+
+# you can add statements to the Lambda function's IAM Role here
+#  iamRoleStatements:
+#    - Effect: "Allow"
+#      Action:
+#        - "s3:ListBucket"
+#      Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
+#    - Effect: "Allow"
+#      Action:
+#        - "s3:PutObject"
+#      Resource:
+#        Fn::Join:
+#          - ""
+#          - - "arn:aws:s3:::"
+#            - "Ref" : "ServerlessDeploymentBucket"
+#            - "/*"
+
+# you can define service wide environment variables here
+#  environment:
+#    variable1: value1
+
+# you can add packaging information here
+package:
+  artifact: target/ncent-api-dev-jar-with-dependencies.jar
+  excludeDevDependencies: false
+
+functions:
+  dbhealth:
+    handler: framework.models.Handler
+    events:
+      - schedule: rate(10 minutes)
+      - http:
+          path: /dbhealth/health
+          method: get
+          authorizer: ${self:custom.authorizer}
+          cors: true
+#  token_get:
+#    handler: framework.models.Handler
+#    events:
+#    - schedule: rate(10 minutes)
+#    - http:
+#        path: /token
+#        method: get
+#        authorizer: ${self:custom.authorizer}
+#
+#  tokens_get:
+#    handler: framework.models.Handler
+#    events:
+#    - schedule: rate(10 minutes)
+#    - http:
+#        path: /tokens
+#        method: get
+#        authorizer: ${self:custom.authorizer}
+#
+#  token_create:
+#    handler: framework.models.Handler
+#    events:
+#    - schedule: rate(10 minutes)
+#    - http:
+#        path: /token
+#        method: post
+#        authorizer: ${self:custom.authorizer}
+#
+#  token_transfer:
+#    handler: framework.models.Handler
+#    events:
+#    - schedule: rate(10 minutes)
+#    - http:
+#        path: /token/transfer
+#        method: post
+#        authorizer: ${self:custom.authorizer}
+
+#  transaction:
+#    handler: framework.models.Handler
+#    events:
+#    - schedule: rate(10 minutes)
+#    - http:
+#        path: /transaction
+#        method: post
+#        authorizer: ${self:custom.authorizer}
+
+  challenge_create:
+    handler: framework.models.Handler
+    events:
+      - schedule: rate(10 minutes)
+      - http:
+          path: /challenge
+          method: post
+          authorizer: ${self:custom.authorizer}
+          cors: true
+
+  challenge_get:
+    handler: framework.models.Handler
+    events:
+      - schedule: rate(10 minutes)
+      - http:
+          path: /challenge
+          method: get
+          authorizer: ${self:custom.authorizer}
+          cors: true
+
+  challenges_get:
+    handler: framework.models.Handler
+    events:
+    - schedule: rate(10 minutes)
+    - http:
+        path: /challenges
+        method: get
+        authorizer: ${self:custom.authorizer}
+        cors: true
+
+  challenge_balances_get:
+    handler: framework.models.Handler
+    events:
+      - schedule: rate(10 minutes)
+      - http:
+          path: /challenges/balances
+          method: get
+          authorizer: ${self:custom.authorizer}
+          cors: true
+
+  challenge_share:
+    handler: framework.models.Handler
+    events:
+      - schedule: rate(10 minutes)
+      - http:
+          path: /challenge/share
+          method: patch
+          authorizer: ${self:custom.authorizer}
+          cors: true
+
+
+#  challenges_get:
+#    handler: framework.models.Handler
+#    events:
+#    - schedule: rate(10 minutes)
+#    - http:
+#        path: /challenges
+#        method: get
+#        authorizer: ${self:custom.authorizer}
+
+#  challenge_invalidate:
+#    handler: framework.models.Handler
+#    events:
+#    - schedule: rate(10 minutes)
+#    - http:
+#        path: /challenge/invalidate
+#        method: put
+#
+#  challenge_validate:
+#    handler: framework.models.Handler
+#    events:
+#    - schedule: rate(10 minutes)
+#    - http:
+#        path: /challenge/validate
+#        method: put
+
+resources:
+  Resources:
+    GatewayResponseDefault4XX:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
+    GatewayResponseDefault5XX:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: DEFAULT_5XX
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'

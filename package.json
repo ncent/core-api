@@ -1,0 +1,32 @@
+{
+  "name": "ncent-api-v2",
+  "version": "1.0.0",
+  "description": "* [Overview](#overview)  * [Installation](#install)  * [Contribute](#contributing)",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ncent/ncent-api-v2.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ncent/ncent-api-v2/issues"
+  },
+  "homepage": "https://github.com/ncent/ncent-api-v2#readme",
+  "dependencies": {
+    "aws-cli-js": "^2.0.5",
+    "minimist": "^1.2.0",
+    "newman": "^4.5.1",
+    "serverless-pseudo-parameters": "^2.5.0"
+  },
+  "devDependencies": {
+    "serverless-plugin-split-stacks": "^1.9.2"
+  }
+}
